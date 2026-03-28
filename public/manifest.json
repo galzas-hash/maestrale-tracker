@@ -1,0 +1,14 @@
+{
+  "name": "Maestrale Tracker",
+  "short_name": "Maestrale",
+  "icons": [
+    {
+      "src": "/TrackerFAVICON.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#2a7a7a"
+}
