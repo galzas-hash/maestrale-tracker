@@ -270,22 +270,49 @@ export default function MaestraleTracker() {
         );
       })}
 
-      <button
-        style={{
-          marginTop: 20, display: "block", marginLeft: "auto", marginRight: "auto",
-          background: "none", border: "1px solid #ddd", borderRadius: 6,
-          color: "#aaa", fontSize: 11, padding: "5px 14px", cursor: "pointer",
-          letterSpacing: "0.05em",
-        }}
-        onClick={() => {
-          if (window.confirm("Reset all progress?")) {
-            setChecked({});
-            localStorage.removeItem(STORAGE_KEY);
-          }
-        }}
-      >
-        Reset progress
-      </button>
+      <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+        <button
+          style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(checked)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "maestrale-progress.json";
+            a.click();
+          }}
+        >Export progress</button>
+        <button
+          style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          onClick={() => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json";
+            input.onchange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                try {
+                  const data = JSON.parse(ev.target.result);
+                  setChecked(data);
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch { alert("Invalid file"); }
+              };
+              reader.readAsText(file);
+            };
+            input.click();
+          }}
+        >Import progress</button>
+        <button
+          style={{ background: "none", border: "1px solid #ddd", borderRadius: 6, color: "#aaa", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          onClick={() => {
+            if (window.confirm("Reset all progress?")) {
+              setChecked({});
+              localStorage.removeItem(STORAGE_KEY);
+            }
+          }}
+        >Reset progress</button>
+      </div>
 
       <p style={{ textAlign: "center", color: "#c0b8af", fontSize: 11, marginTop: 28, letterSpacing: "0.06em" }}>
         Pattern © 2017 Gaia Tarantino · Crafting Tales by Nimhriel
