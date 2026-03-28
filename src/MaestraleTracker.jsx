@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react";
 const G = ({ children }) => (
   <span style={{ color: "#1a7a4a", fontWeight: 600 }}>{children}</span>
 );
+const I = ({ children }) => (
+  <span style={{ color: "#b5651d", fontWeight: 600 }}>{children}</span>
+);
 
 const ROW1  = "CH 5. 1 DC in the 4th CH from the hook, 1 DC in the last CH.";
 const ROW2  = "(WS) CH 4, 2 DC in the 4th CH from the hook, CH 3, skip the next 2 sts, CL in the top of the turning CH.";
@@ -14,7 +17,7 @@ const ROW6  = "CH 4, 2 DC in the 4th CH from the hook, CH 3, skip CL, 3 DC in th
 const ROW7  = <span>CH 4, 2 DC in the 4th CH form the hook, <G>*CH 3, skip the next 3 sts, SC in the CH 3 space, CH 3, skip the next 3 sts, 3 DC in the CH 4 space, CH 4, skip the next st, SC in the next st, CH 4, skip the next st, 3 DC in the CH 4 space*,</G> CH 3, skip the next 3 sts, SC in the CH 3 space, CH 3, skip the next 2 sts, CL in the top of the turning CH.</span>;
 const ROW8  = <span>CH 4, 2 DC in the 4th Ch from the hook, CH 3, <G>*skip the next 3 sts, SC in the CH 3 space, SC in the next st, SC in the CH 3 space, CH 3, skip the next 3 sts, 3 DC in the CH 4 space, CH 3, skip the next st, 3 DC in the CH 4 space, CH 3*,</G> skip the next 3 sts, SC in the CH 3 space, SC in the next st, SC in the CH 3 space, CH 3, skip the next 2 sts, CL in the top of the turning CH.</span>;
 const ROW9  = <span>CH 4, 2 DC in the 4th CH from the hook, CH 4, skip the next 3 sts, SC in the CH 3 space, <G>*SC in the next 3 sts, SC in the CH 3 space, CH 4, skip the next 3 sts, 3 DC in the CH 3 space, CH 4, skip the next 3 sts, SC in the CH 3 space*,</G> SC in the next 3 sts, SC in the CH 3 space, CH 4, skip the next 2 sts, CL in the top of the turning CH.</span>;
-const ROW10 = <span>CH 4, 2 DC in the 4th CH from the hook, <G>*CH 3, skip the next 3 sts, 3 DC in the CH 4 space, CH 4, skip the next st, *SC in the next 3 sts, CH 4, skip the next st, 3 DC in the next CH 4 space, CH 3, 3 DC in the next CH 4 space, CH 4, skip the next st *, SC in the next 3 sts, CH 4, skip the next st, 3 DC in the CH 4 space, CH 3, skip the next 2 sts,</G> CL in the top of the turning CH.</span>;
+const ROW10 = <span>CH 4, 2 DC in the 4th CH from the hook, <G>*CH 3, skip the next 3 sts, 3 DC in the CH 4 space, CH 4, skip the next st, <I>*SC in the next 3 sts, CH 4, skip the next st, 3 DC in the next CH 4 space, CH 3, 3 DC in the next CH 4 space, CH 4, skip the next st *</I>, SC in the next 3 sts, CH 4, skip the next st, 3 DC in the CH 4 space, CH 3, skip the next 2 sts,</G> CL in the top of the turning CH.</span>;
 const ROW34 = "(WS) CH 4, 2 DC in the first st, DC in every stitch to end (3 DC in every CH space), CL in the top of the turning CH.";
 const ROW35 = "(RS) CH 4, 2 DC in the BL of the first st, DC in the BL of every stitch, CL in the top of the turning CH.";
 const ROW36 = "CH 4, 2 DC in the FL of the first st, DC in the FL of every stitch, CL on top of the turning CH.";
@@ -110,7 +113,17 @@ export default function MaestraleTracker() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
     catch { return {}; }
   });
-  const [collapsed, setCollapsed] = useState({});
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      const init = {};
+      SECTION_ORDER.forEach(sec => {
+        const steps = SECTION_MAP[sec];
+        if (steps.every(st => saved[st.id])) init[sec] = true;
+      });
+      return init;
+    } catch { return {}; }
+  });
   const [screenOn, setScreenOn]   = useState(false);
   const wakeLockRef               = useRef(null);
 
@@ -164,7 +177,7 @@ export default function MaestraleTracker() {
         </p>
         <p style={{ fontSize: 11.5, margin: "0 0 14px" }}>
           <span style={{ background: "#1a7a4a18", borderRadius: 4, padding: "2px 8px", color: "#1a7a4a", fontWeight: 600 }}>
-            Green text = the repeating sequence between * … * in the original
+            Green = outer repeat * … * · Amber = inner nested repeat
           </span>
         </p>
         <div style={{ background: "#e0dbd3", borderRadius: 20, height: 10, overflow: "hidden", maxWidth: 400, margin: "0 auto 6px" }}>
@@ -254,7 +267,7 @@ export default function MaestraleTracker() {
               }}
             >
               <span>
-                <span style={{ fontWeight: "bold", fontSize: 14, color: allDone ? "#2a7a7a" : accent }}>
+                <span style={{ fontWeight: "bold", fontSize: 15.5, color: allDone ? "#2a7a7a" : accent }}>
                   {allDone ? "✓ " : ""}{sec}
                 </span>
                 <span style={{ fontSize: 12, color: "#aaa", marginLeft: 8 }}>({secDone}/{steps.length})</span>
@@ -292,7 +305,7 @@ export default function MaestraleTracker() {
                   </div>
 
                   <div style={{
-                    fontSize: 13.5, fontWeight: 600,
+                    fontSize: 15, fontWeight: 600,
                     color: isDone ? "#aaa" : accent,
                     textDecoration: isDone ? "line-through" : "none",
                     marginBottom: 3,
@@ -301,7 +314,7 @@ export default function MaestraleTracker() {
                   </div>
 
                   <p style={{
-                    fontSize: 12.5, color: isDone ? "#bbb" : "#444",
+                    fontSize: 14, color: isDone ? "#bbb" : "#444",
                     lineHeight: 1.65, margin: 0, opacity: isDone ? 0.55 : 1,
                   }}>
                     {step.desc}
