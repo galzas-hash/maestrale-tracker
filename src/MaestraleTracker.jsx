@@ -94,22 +94,35 @@ const buildSections = () => {
 };
 const { order: SECTION_ORDER, map: SECTION_MAP } = buildSections();
 
-const sectionColor = (sec) => {
-  if (sec === "Set up rows")               return { bg: "#fff8ee", accent: "#c8813a" };
-  if (sec.startsWith("Rows 7–10"))         return { bg: "#eef7f7", accent: "#2a7a7a" };
-  if (sec.startsWith("Repeat rows 7–10"))  return { bg: "#eef7f7", accent: "#2a7a7a" };
-  if (sec.startsWith("Repeat rows 7–9"))   return { bg: "#e8f4f0", accent: "#2a7a7a" };
-  if (sec.startsWith("Rows 34–38"))        return { bg: "#f3eef7", accent: "#7a5a9a" };
-  if (sec.startsWith("Repeat rows 34–38")) return { bg: "#f3eef7", accent: "#7a5a9a" };
-  if (sec === "Rows 34 and 35")            return { bg: "#f3eef7", accent: "#7a5a9a" };
-  if (sec === "Finishing")                 return { bg: "#eef7f4", accent: "#3a9a6a" };
-  return { bg: "#f9f7f4", accent: "#666" };
+const sectionColor = (sec, night) => {
+  if (!night) {
+    if (sec === "Set up rows")               return { bg: "#fff8ee", accent: "#c8813a" };
+    if (sec.startsWith("Rows 7–10"))         return { bg: "#eef7f7", accent: "#2a7a7a" };
+    if (sec.startsWith("Repeat rows 7–10"))  return { bg: "#eef7f7", accent: "#2a7a7a" };
+    if (sec.startsWith("Repeat rows 7–9"))   return { bg: "#e8f4f0", accent: "#2a7a7a" };
+    if (sec.startsWith("Rows 34–38"))        return { bg: "#f3eef7", accent: "#7a5a9a" };
+    if (sec.startsWith("Repeat rows 34–38")) return { bg: "#f3eef7", accent: "#7a5a9a" };
+    if (sec === "Rows 34 and 35")            return { bg: "#f3eef7", accent: "#7a5a9a" };
+    if (sec === "Finishing")                 return { bg: "#eef7f4", accent: "#3a9a6a" };
+    return { bg: "#f9f7f4", accent: "#666" };
+  } else {
+    if (sec === "Set up rows")               return { bg: "#2e2820", accent: "#d4a050" };
+    if (sec.startsWith("Rows 7–10"))         return { bg: "#1e2a2a", accent: "#4aacac" };
+    if (sec.startsWith("Repeat rows 7–10"))  return { bg: "#1e2a2a", accent: "#4aacac" };
+    if (sec.startsWith("Repeat rows 7–9"))   return { bg: "#1e2826", accent: "#4aacac" };
+    if (sec.startsWith("Rows 34–38"))        return { bg: "#26222e", accent: "#a080c0" };
+    if (sec.startsWith("Repeat rows 34–38")) return { bg: "#26222e", accent: "#a080c0" };
+    if (sec === "Rows 34 and 35")            return { bg: "#26222e", accent: "#a080c0" };
+    if (sec === "Finishing")                 return { bg: "#1e2824", accent: "#5aba8a" };
+    return { bg: "#2a2520", accent: "#999" };
+  }
 };
 
 const STORAGE_KEY = "maestrale-tracker-v1";
+const NIGHT_KEY = "maestrale-night-mode";
 
 export default function MaestraleTracker() {
-  const [checked, setChecked]   = useState(() => {
+  const [checked, setChecked] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
     catch { return {}; }
   });
@@ -124,14 +137,22 @@ export default function MaestraleTracker() {
       return init;
     } catch { return {}; }
   });
-  const [screenOn, setScreenOn]   = useState(false);
-  const wakeLockRef               = useRef(null);
-
-  // Save to localStorage whenever checked changes
+  const [screenOn, setScreenOn] = useState(false);
+  const [nightMode, setNightMode] = useState(() => {
+    try { return localStorage.getItem(NIGHT_KEY) === "true"; }
+    catch { return false; }
+  });
+  const wakeLockRef = useRef(null);
+  
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); }
     catch {}
   }, [checked]);
+
+  useEffect(() => {
+    try { localStorage.setItem(NIGHT_KEY, nightMode ? "true" : "false"); }
+    catch {}
+  }, [nightMode]);
 
   const toggleScreenOn = async () => {
     if (screenOn) {
@@ -161,51 +182,88 @@ export default function MaestraleTracker() {
   const done  = ALL_STEPS.filter(s => checked[s.id]).length;
   const pct   = total ? Math.round((done / total) * 100) : 0;
 
+  const n = nightMode;
+  const theme = {
+    bg: n ? "#2d2a24" : "#faf8f5",
+    text: n ? "#d4ccc0" : "#2c2c2c",
+    muted: n ? "#8a8478" : "#aaa",
+    cardBg: n ? "#3a3530" : "#fff",
+    doneBg: n ? "rgba(74,172,172,0.1)" : "rgba(42,122,122,0.04)",
+    progressBg: n ? "#4a4540" : "#e0dbd3",
+    border: n ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+    sectionDone: n ? "#1e2e26" : "#e4f5ef",
+    checkBorder: n ? "#555" : "#ccc",
+    doneText: n ? "#777" : "#aaa",
+    doneDesc: n ? "#666" : "#bbb",
+    descText: n ? "#bab4a8" : "#444",
+    btnBg: n ? "#3a3530" : "#f0ede8",
+    btnBorder: n ? "#555" : "#c0b8af",
+    btnText: n ? "#bab4a8" : "#666",
+    legendBg: n ? "#1a7a4a30" : "#1a7a4a18",
+    footerText: n ? "#5a5548" : "#c0b8af",
+  };
+
   return (
     <div style={{
       fontFamily: "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif",
       maxWidth: 720, margin: "0 auto", padding: "20px 16px 40px",
-      background: "#faf8f5", minHeight: "100vh", color: "#2c2c2c",
+      background: theme.bg, minHeight: "100vh", color: theme.text,
+      transition: "background 0.3s, color 0.3s",
     }}>
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 34, fontStyle: "italic", color: "#2a7a7a", margin: "0 0 4px" }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 34, fontStyle: "italic", color: n ? "#4aacac" : "#2a7a7a", margin: "0 0 4px" }}>
           🧶 Maestrale
         </h1>
-        <p style={{ fontSize: 12, color: "#aaa", margin: "0 0 6px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        <p style={{ fontSize: 12, color: theme.muted, margin: "0 0 6px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
           Pattern Row Tracker · by Nimhriel
         </p>
         <p style={{ fontSize: 11.5, margin: "0 0 14px" }}>
-          <span style={{ background: "#1a7a4a18", borderRadius: 4, padding: "2px 8px", color: "#1a7a4a", fontWeight: 600 }}>
+          <span style={{ background: theme.legendBg, borderRadius: 4, padding: "2px 8px", color: "#1a7a4a", fontWeight: 600 }}>
             Green = outer repeat * … * · Amber = inner nested repeat
           </span>
         </p>
-        <div style={{ background: "#e0dbd3", borderRadius: 20, height: 10, overflow: "hidden", maxWidth: 400, margin: "0 auto 6px" }}>
+        <div style={{ background: theme.progressBg, borderRadius: 20, height: 10, overflow: "hidden", maxWidth: 400, margin: "0 auto 6px", transition: "background 0.3s" }}>
           <div style={{
             background: "linear-gradient(90deg, #2a7a7a, #3aaa8a)",
             width: `${pct}%`, height: "100%",
             transition: "width 0.4s cubic-bezier(.4,0,.2,1)", borderRadius: 20,
           }} />
         </div>
-        <p style={{ fontSize: 12, color: "#888", letterSpacing: "0.05em", margin: "0 0 10px" }}>
+        <p style={{ fontSize: 12, color: theme.muted, letterSpacing: "0.05em", margin: "0 0 10px" }}>
           {done} of {total} steps complete — {pct}%
         </p>
-        <button
-          onClick={toggleScreenOn}
-          style={{
-            background: screenOn ? "#2a7a7a" : "#f0ede8",
-            border: `1px solid ${screenOn ? "#2a7a7a" : "#c0b8af"}`,
-            borderRadius: 20, color: screenOn ? "#fff" : "#666",
-            fontSize: 12, padding: "6px 18px", cursor: "pointer",
-            letterSpacing: "0.05em", transition: "all 0.2s",
-            fontFamily: "inherit",
-          }}
-        >
-          {screenOn ? "☀️ Screen staying on" : "☀️ Keep screen on"}
-        </button>
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
           <button
-            style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+            onClick={toggleScreenOn}
+            style={{
+              background: screenOn ? "#2a7a7a" : theme.btnBg,
+              border: `1px solid ${screenOn ? "#2a7a7a" : theme.btnBorder}`,
+              borderRadius: 20, color: screenOn ? "#fff" : theme.btnText,
+              fontSize: 12, padding: "6px 18px", cursor: "pointer",
+              letterSpacing: "0.05em", transition: "all 0.2s",
+              fontFamily: "inherit",
+            }}
+          >
+            {screenOn ? "☀️ Screen staying on" : "☀️ Keep screen on"}
+          </button>
+          <button
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              background: n ? "#4a4540" : "#f0ede8",
+              border: `1px solid ${n ? "#666" : "#c0b8af"}`,
+              borderRadius: 20, color: n ? "#d4ccc0" : "#666",
+              fontSize: 12, padding: "6px 18px", cursor: "pointer",
+              letterSpacing: "0.05em", transition: "all 0.2s",
+              fontFamily: "inherit",
+            }}
+          >
+            {n ? "🌙 Night mode on" : "🌙 Night mode"}
+          </button>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          <button
+            style={{ background: "none", border: `1px solid ${n ? "#4aacac" : "#2a7a7a"}`, borderRadius: 6, color: n ? "#4aacac" : "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
             onClick={() => {
               const blob = new Blob([JSON.stringify(checked)], { type: "application/json" });
               const a = document.createElement("a");
@@ -215,7 +273,7 @@ export default function MaestraleTracker() {
             }}
           >Export progress</button>
           <button
-            style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+            style={{ background: "none", border: `1px solid ${n ? "#4aacac" : "#2a7a7a"}`, borderRadius: 6, color: n ? "#4aacac" : "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
             onClick={() => {
               const input = document.createElement("input");
               input.type = "file";
@@ -237,7 +295,7 @@ export default function MaestraleTracker() {
             }}
           >Import progress</button>
           <button
-            style={{ background: "none", border: "1px solid #ddd", borderRadius: 6, color: "#aaa", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+            style={{ background: "none", border: `1px solid ${n ? "#555" : "#ddd"}`, borderRadius: 6, color: theme.muted, fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
             onClick={() => {
               if (window.confirm("Reset all progress?")) {
                 setChecked({});
@@ -254,26 +312,27 @@ export default function MaestraleTracker() {
         const secDone = steps.filter(st => checked[st.id]).length;
         const allDone = secDone === steps.length;
         const isOpen  = !collapsed[sec];
-        const { bg, accent } = sectionColor(sec);
+        const { bg, accent } = sectionColor(sec, n);
 
         return (
-          <div key={sec} style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+          <div key={sec} style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", boxShadow: n ? "0 1px 4px rgba(0,0,0,0.3)" : "0 1px 4px rgba(0,0,0,0.07)" }}>
             <div
               onClick={() => toggleSection(sec)}
               style={{
-                padding: "11px 16px", background: allDone ? "#e4f5ef" : bg,
+                padding: "11px 16px", background: allDone ? theme.sectionDone : bg,
                 cursor: "pointer", display: "flex", justifyContent: "space-between",
                 alignItems: "center", userSelect: "none",
+                transition: "background 0.3s",
               }}
             >
               <span>
-                <span style={{ fontWeight: "bold", fontSize: 15.5, color: allDone ? "#2a7a7a" : accent }}>
+                <span style={{ fontWeight: "bold", fontSize: 15.5, color: allDone ? (n ? "#4aacac" : "#2a7a7a") : accent }}>
                   {allDone ? "✓ " : ""}{sec}
                 </span>
-                <span style={{ fontSize: 12, color: "#aaa", marginLeft: 8 }}>({secDone}/{steps.length})</span>
+                <span style={{ fontSize: 12, color: theme.muted, marginLeft: 8 }}>({secDone}/{steps.length})</span>
               </span>
               <span style={{
-                fontSize: 11, color: "#aaa",
+                fontSize: 11, color: theme.muted,
                 transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
                 transition: "transform 0.2s", display: "inline-block",
               }}>▶</span>
@@ -287,8 +346,8 @@ export default function MaestraleTracker() {
                   onClick={() => toggle(step.id)}
                   style={{
                     padding: "10px 16px 10px 48px",
-                    borderTop: "1px solid rgba(0,0,0,0.05)",
-                    background: isDone ? "rgba(42,122,122,0.04)" : "#fff",
+                    borderTop: `1px solid ${theme.border}`,
+                    background: isDone ? theme.doneBg : theme.cardBg,
                     cursor: "pointer", position: "relative",
                     transition: "background 0.15s",
                   }}
@@ -296,8 +355,8 @@ export default function MaestraleTracker() {
                   <div style={{
                     position: "absolute", left: 16, top: 12,
                     width: 20, height: 20, borderRadius: 4,
-                    border: isDone ? "none" : "2px solid #ccc",
-                    background: isDone ? accent : "#fff",
+                    border: isDone ? "none" : `2px solid ${theme.checkBorder}`,
+                    background: isDone ? accent : (n ? "#3a3530" : "#fff"),
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "all 0.15s",
                   }}>
@@ -306,7 +365,7 @@ export default function MaestraleTracker() {
 
                   <div style={{
                     fontSize: 15, fontWeight: 600,
-                    color: isDone ? "#aaa" : accent,
+                    color: isDone ? theme.doneText : accent,
                     textDecoration: isDone ? "line-through" : "none",
                     marginBottom: 3,
                   }}>
@@ -314,7 +373,7 @@ export default function MaestraleTracker() {
                   </div>
 
                   <p style={{
-                    fontSize: 14, color: isDone ? "#bbb" : "#444",
+                    fontSize: 14, color: isDone ? theme.doneDesc : theme.descText,
                     lineHeight: 1.65, margin: 0, opacity: isDone ? 0.55 : 1,
                   }}>
                     {step.desc}
@@ -328,7 +387,7 @@ export default function MaestraleTracker() {
 
       <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
         <button
-          style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          style={{ background: "none", border: `1px solid ${n ? "#4aacac" : "#2a7a7a"}`, borderRadius: 6, color: n ? "#4aacac" : "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
           onClick={() => {
             const blob = new Blob([JSON.stringify(checked)], { type: "application/json" });
             const a = document.createElement("a");
@@ -338,7 +397,7 @@ export default function MaestraleTracker() {
           }}
         >Export progress</button>
         <button
-          style={{ background: "none", border: "1px solid #2a7a7a", borderRadius: 6, color: "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          style={{ background: "none", border: `1px solid ${n ? "#4aacac" : "#2a7a7a"}`, borderRadius: 6, color: n ? "#4aacac" : "#2a7a7a", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
           onClick={() => {
             const input = document.createElement("input");
             input.type = "file";
@@ -360,7 +419,7 @@ export default function MaestraleTracker() {
           }}
         >Import progress</button>
         <button
-          style={{ background: "none", border: "1px solid #ddd", borderRadius: 6, color: "#aaa", fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
+          style={{ background: "none", border: `1px solid ${n ? "#555" : "#ddd"}`, borderRadius: 6, color: theme.muted, fontSize: 11, padding: "5px 14px", cursor: "pointer", letterSpacing: "0.05em" }}
           onClick={() => {
             if (window.confirm("Reset all progress?")) {
               setChecked({});
@@ -370,7 +429,7 @@ export default function MaestraleTracker() {
         >Reset progress</button>
       </div>
 
-      <p style={{ textAlign: "center", color: "#c0b8af", fontSize: 11, marginTop: 28, letterSpacing: "0.06em" }}>
+      <p style={{ textAlign: "center", color: theme.footerText, fontSize: 11, marginTop: 28, letterSpacing: "0.06em" }}>
         Pattern © 2017 Gaia Tarantino · Crafting Tales by Nimhriel
       </p>
     </div>
