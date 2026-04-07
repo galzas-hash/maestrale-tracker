@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import './styles.css'
 import MaestraleTracker from './MaestraleTracker.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
