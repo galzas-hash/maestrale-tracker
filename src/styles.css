@@ -65,6 +65,40 @@
   display: block;
 }
 
+.section-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tx);
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 11px;
+  color: var(--mu);
+}
+
+.row-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--tx);
+}
+
+.row-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+  color: var(--tx);
+}
+
 .page-header {
   background: var(--hb);
   border-bottom: 1px solid var(--bd);

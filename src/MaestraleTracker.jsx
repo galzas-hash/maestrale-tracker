@@ -264,10 +264,11 @@ export default function MaestraleTracker() {
             return (
               <div key={sec} className="hc-card">
                 <div className="section" style={{ padding: "14px 18px 12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <span className="hc-label">Pattern segment</span>
+                  <div className="section-card-header">
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: accent }}>{allDone ? `✓ ${sec}` : sec}</div>
-                      <div style={{ fontSize: 11, color: "var(--mu)", marginTop: 4 }}>{secDone}/{steps.length} steps</div>
+                      <div className="section-title">{allDone ? `✓ ${sec}` : sec}</div>
+                      <div className="section-subtitle">{secDone}/{steps.length} steps</div>
                     </div>
                     <button className="btn-ghost" style={{ minWidth: 96 }} onClick={() => toggleSection(sec)}>{isOpen ? "Collapse" : "Expand"}</button>
                   </div>
@@ -285,7 +286,7 @@ export default function MaestraleTracker() {
                         {isDone && <span style={{ color: "#fff", fontSize: 12, lineHeight: 1 }}>✓</span>}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div className="row-title" style={{ color: isDone ? "var(--mu)" : accent }}>{step.label}</div>
+                        <div className="row-title" style={{ opacity: isDone ? 0.65 : 1 }}>{step.label}</div>
                         <p className="row-desc" style={{ opacity: isDone ? 0.65 : 1 }}>{step.desc}</p>
                       </div>
                     </div>
