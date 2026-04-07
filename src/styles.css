@@ -181,6 +181,11 @@
   opacity: .88;
 }
 
+.row-item.done .row-title,
+.row-item.done .row-desc {
+  text-decoration: line-through;
+}
+
 .cb {
   width: 18px;
   height: 18px;
